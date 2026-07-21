@@ -1,0 +1,7 @@
+# Системные файлы macOS
+.DS_Store
+
+# Видео не храним в git (слишком большой файл для GitHub, лимит 100 МБ)
+video/*.mp4
+video/*.webm
+video/*.mov

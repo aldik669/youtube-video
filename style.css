@@ -1,0 +1,303 @@
+/* ============================================================
+   KURSOR — стили страницы с защищённым видео
+   Цветовая палитра и типографика в духе бренда KURSOR.
+   ============================================================ */
+
+/* ---------- Переменные (цвета, тени, скругления) ---------- */
+:root {
+  --bg: #f7f6f2;              /* тёплый белый фон */
+  --ink: #141414;            /* почти чёрный текст */
+  --ink-soft: #5b5b57;       /* приглушённый текст */
+  --card: #ffffff;           /* белые карточки */
+
+  --orange: #ff7a00;         /* акцент: оранжевый */
+  --yellow: #ffc839;         /* акцент: жёлтый */
+  --blue: #2f6fed;           /* второстепенный акцент */
+  --purple-1: #6c5ce7;       /* фиолетовый градиент (иконки) */
+  --purple-2: #9b6dff;
+
+  --danger: #e23b3b;         /* ошибка */
+
+  --radius-lg: 24px;         /* крупное скругление карточек */
+  --radius-md: 18px;         /* скругление кнопок/полей */
+
+  --shadow-soft: 0 18px 45px rgba(20, 20, 20, 0.08);
+  --shadow-btn: 0 10px 24px rgba(255, 122, 0, 0.28);
+}
+
+/* ---------- Базовый сброс ---------- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  font-family: "Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--ink);
+  background-color: var(--bg);
+
+  /* Еле заметная точечная сетка на фоне */
+  background-image: radial-gradient(rgba(20, 20, 20, 0.06) 1.4px, transparent 1.4px);
+  background-size: 26px 26px;
+  background-position: -13px -13px;
+
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* ---------- Шапка сайта ---------- */
+.site-header {
+  padding: 22px clamp(16px, 4vw, 48px);
+}
+
+.logo-block {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Маленькая фиолетовая иконка-квадратик со скруглением */
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--purple-1), var(--purple-2));
+  box-shadow: 0 8px 18px rgba(108, 92, 231, 0.3);
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.logo-name {
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: 0.5px;
+}
+
+.logo-caption {
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+/* ---------- Общий контейнер страницы ---------- */
+.page {
+  flex: 1;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: clamp(16px, 4vw, 40px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------- Экраны (общее) с плавным появлением ---------- */
+.screen {
+  width: 100%;
+  opacity: 1;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* Класс для плавного исчезновения (fade-out) */
+.screen.is-hidden {
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+}
+
+/* ---------- Карточка ---------- */
+.card {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: clamp(24px, 5vw, 44px);
+}
+
+/* ---------- Экран пароля ---------- */
+.lock-card {
+  max-width: 460px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.title {
+  font-weight: 800;
+  font-size: clamp(26px, 4vw, 34px);
+  letter-spacing: -0.5px;
+}
+
+.subtitle {
+  margin-top: 10px;
+  color: var(--ink-soft);
+  font-size: 16px;
+}
+
+.password-form {
+  margin-top: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Обёртка поля ввода с иконкой замка слева */
+.input-wrap {
+  position: relative;
+}
+
+.lock-icon {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ink-soft);
+  display: inline-flex;
+}
+
+.password-input {
+  width: 100%;
+  padding: 16px 18px 16px 52px;   /* слева место под иконку */
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--ink);
+  background: #faf9f6;
+  border: 2px solid #ecebe6;
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.password-input:focus {
+  border-color: var(--orange);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(255, 122, 0, 0.12);
+}
+
+/* Состояние ошибки: красная подсветка + shake */
+.password-input.error {
+  border-color: var(--danger);
+  background: #fff5f5;
+  box-shadow: 0 0 0 4px rgba(226, 59, 59, 0.12);
+  animation: shake 0.4s ease;
+}
+
+.error-msg {
+  color: var(--danger);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  padding-left: 4px;
+}
+
+/* Анимация встряхивания поля */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+
+/* ---------- Главная акцентная кнопка ---------- */
+.btn-primary {
+  margin-top: 4px;
+  padding: 16px 24px;
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(90deg, var(--orange), var(--yellow));
+  border: none;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-btn);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+
+.btn-primary:hover {
+  filter: brightness(0.95);          /* чуть темнее */
+  transform: translateY(-2px);       /* приподнимается */
+  box-shadow: 0 14px 30px rgba(255, 122, 0, 0.34);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* ---------- Экран видео ---------- */
+.video-screen {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.video-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+/* Кнопка «Выйти» — второстепенная, синий акцент */
+.btn-logout {
+  padding: 11px 20px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--blue);
+  background: rgba(47, 111, 237, 0.1);
+  border: 2px solid rgba(47, 111, 237, 0.22);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.btn-logout:hover {
+  background: rgba(47, 111, 237, 0.16);
+  transform: translateY(-1px);
+}
+
+/* Рамка вокруг плеера: скругление + тень */
+.video-frame {
+  background: #000;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+
+  /* Адаптивные пропорции 16:9 */
+  aspect-ratio: 16 / 9;
+  width: 100%;
+}
+
+/* Плеер занимает всю рамку */
+.video-player {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+/* ---------- Адаптив: мелкие экраны ---------- */
+@media (max-width: 520px) {
+  .video-head {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+}
