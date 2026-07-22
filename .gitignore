@@ -1,7 +1,8 @@
 # Системные файлы macOS
 .DS_Store
 
-# Видео не храним в git (слишком большой файл для GitHub, лимит 100 МБ)
-video/*.mp4
-video/*.webm
-video/*.mov
+# Большое исходное видео (1+ ГБ) в git не храним — не влезает в лимит GitHub 100 МБ.
+video/video.mp4
+
+# Сжатое видео (88 МБ) наоборот НУЖНО в git — его раздаёт GitHub Pages.
+!video/nurmashvideo.mp4

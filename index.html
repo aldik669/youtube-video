@@ -33,7 +33,7 @@
     <section id="lockScreen" class="screen card lock-card">
       <h1 class="title">Доступ к видео</h1>
       <p class="subtitle">
-        Введите пароль, чтобы открыть просмотр урока.
+        Введите ваш персональный код из 8 цифр, чтобы открыть просмотр.
       </p>
 
       <!-- Форма ввода пароля -->
@@ -52,15 +52,19 @@
           <input
             id="passwordInput"
             class="password-input"
-            type="password"
-            placeholder="Введите пароль"
-            aria-label="Пароль"
+            type="text"
+            inputmode="numeric"
+            pattern="\d{8}"
+            maxlength="8"
+            placeholder="8-значный код"
+            aria-label="Код клиента (8 цифр)"
+            autocomplete="off"
           />
         </div>
 
         <!-- Сообщение об ошибке (скрыто по умолчанию) -->
         <p id="errorMsg" class="error-msg" hidden>
-          Неверный пароль, попробуйте ещё раз
+          Код должен состоять ровно из 8 цифр
         </p>
 
         <button type="submit" class="btn-primary">Смотреть</button>

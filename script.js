@@ -1,33 +1,30 @@
 /* ============================================================
-   KURSOR — логика защиты видео паролем
+   KURSOR — доступ к видео по 8-значному коду + трекинг просмотра
    ============================================================
 
    ⚠️ ВАЖНО ПРО БЕЗОПАСНОСТЬ:
-   Проверка пароля происходит ЗДЕСЬ, в браузере (на стороне клиента).
-   Это НЕ настоящая защита:
-     • пароль виден в исходном коде страницы (этот файл открыт любому);
-     • видеофайл лежит по прямому пути "video/video.mp4" и его можно
-       открыть/скачать напрямую, минуя проверку пароля.
-   Такой подход годится только для МЯГКОГО ограничения доступа
-   (например, чтобы случайный человек не попал на страницу),
-   но НЕ для по-настоящему секретного контента.
-   Для реальной защиты нужен сервер: проверка пароля на бэкенде и
-   отдача видео только авторизованным пользователям.
+   Проверка кода происходит ЗДЕСЬ, в браузере (на стороне клиента),
+   и трекинг процента тоже считается в браузере. Это НЕ надёжная защита:
+     • правило «8 цифр» видно в коде страницы;
+     • видеофайл лежит по прямому пути и его можно открыть напрямую;
+     • процент просмотра теоретически можно подделать в браузере.
+   Такой подход годится для МЯГКОГО ограничения и ориентировочной
+   аналитики «кто и сколько посмотрел», но НЕ для секретного контента
+   и не для строгой отчётности. Для настоящей защиты нужен сервер.
    ============================================================ */
 
 /* ---------- CONFIG: всё, что легко менять ---------- */
 const CONFIG = {
-  // Пароль для доступа. Меняйте это значение, чтобы сменить пароль.
-  password: "kursor2026",
-
-  // Путь к видеофайлу. Подмените файл в папке video/ или укажите другой путь.
-  videoSrc: "video/video.mp4",
-
-  // Тип видео для тега <source>.
+  // Путь к видеофайлу. Подмените файл в папке video/ или укажите другой путь/URL.
+  videoSrc: "video/nurmashvideo.mp4",
   videoType: "video/mp4",
 
-  // Ключ, под которым в localStorage хранится факт успешного входа.
+  // Ключи для localStorage (запоминаем вход и код клиента).
   storageKey: "kursor_video_access",
+  codeKey: "kursor_client_code",
+
+  // URL веб-приложения Apps Script (из деплоя в apps-script/Code.gs).
+  trackingUrl: "https://script.google.com/macros/s/AKfycbwEupKsFyi7WqfSB-8dYLqYG6tQHor1IL6XZ6fJXX_FwFJb_m-arwM6RKTJSvgp6Zr6/exec",
 };
 
 /* ---------- Находим элементы на странице ---------- */
@@ -39,27 +36,119 @@ const errorMsg = document.getElementById("errorMsg");
 const logoutBtn = document.getElementById("logoutBtn");
 const videoPlayer = document.getElementById("videoPlayer");
 
+/* ---------- Состояние трекинга ---------- */
+let clientCode = "";     // текущий код клиента (8 цифр)
+let maxPercent = 0;      // максимальный досмотренный процент за сессию
+
+/* ---------- Проверка кода: ровно 8 цифр ---------- */
+function isValidCode(value) {
+  return /^\d{8}$/.test(value);
+}
+
+/* ---------- Отправка прогресса в Google-таблицу ---------- */
+// useBeacon = true — для момента ухода со страницы (надёжная доставка).
+function sendProgress(useBeacon) {
+  // Если URL ещё не вставлен — просто ничего не отправляем (сайт работает как есть).
+  if (!clientCode) return;
+  if (!CONFIG.trackingUrl || CONFIG.trackingUrl.indexOf("http") !== 0) return;
+
+  const payload = JSON.stringify({
+    code: clientCode,
+    percent: Math.round(maxPercent),
+  });
+
+  try {
+    if (useBeacon && navigator.sendBeacon) {
+      // sendBeacon доставляет данные, даже если страницу закрывают
+      const blob = new Blob([payload], { type: "text/plain;charset=utf-8" });
+      navigator.sendBeacon(CONFIG.trackingUrl, blob);
+    } else {
+      // Обычная отправка. mode:no-cors — чтобы браузер не блокировал запрос
+      // к Apps Script (ответ читать не нужно, это «отправил и забыл»).
+      fetch(CONFIG.trackingUrl, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: payload,
+        keepalive: true,
+      });
+    }
+  } catch (e) {
+    /* сеть недоступна — не критично */
+  }
+}
+
+/* ---------- Обновление максимального процента просмотра ---------- */
+function updatePercent() {
+  if (!videoPlayer.duration || isNaN(videoPlayer.duration)) return;
+  const pct = (videoPlayer.currentTime / videoPlayer.duration) * 100;
+  if (pct > maxPercent) maxPercent = pct;
+}
+
+/* ---------- Навешиваем трекинг на плеер ---------- */
+function attachTracking() {
+  // Считаем прогресс по ходу воспроизведения
+  videoPlayer.addEventListener("timeupdate", updatePercent);
+
+  // Пауза — фиксируем, сколько досмотрел
+  videoPlayer.addEventListener("pause", () => {
+    updatePercent();
+    sendProgress(false);
+  });
+
+  // Видео закончилось — 100%
+  videoPlayer.addEventListener("ended", () => {
+    maxPercent = 100;
+    sendProgress(false);
+  });
+
+  // Переключил вкладку / свернул — отправляем текущий прогресс
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      updatePercent();
+      sendProgress(true);
+    }
+  });
+
+  // Закрытие/уход со страницы — надёжная отправка через sendBeacon
+  window.addEventListener("pagehide", () => {
+    updatePercent();
+    sendProgress(true);
+  });
+  window.addEventListener("beforeunload", () => {
+    updatePercent();
+    sendProgress(true);
+  });
+
+  // Подстраховка: раз в 15 секунд во время игры отправляем прогресс
+  setInterval(() => {
+    if (!videoPlayer.paused && !videoPlayer.ended && clientCode) {
+      updatePercent();
+      sendProgress(false);
+    }
+  }, 15000);
+}
+
+/* ---------- Подставляем источник видео (один раз) ---------- */
+function ensureVideoSource() {
+  if (!videoPlayer.querySelector("source")) {
+    const source = document.createElement("source");
+    source.src = CONFIG.videoSrc;
+    source.type = CONFIG.videoType;
+    videoPlayer.appendChild(source);
+    videoPlayer.load();
+  }
+}
+
 /* ---------- Показ экрана видео ---------- */
 function showVideo() {
-  // Плавно прячем экран пароля
   lockScreen.classList.add("is-hidden");
 
-  // После завершения fade-анимации полностью убираем экран пароля из потока
   setTimeout(() => {
     lockScreen.hidden = true;
+    ensureVideoSource();
 
-    // Подставляем источник видео из CONFIG (один раз, при показе)
-    if (!videoPlayer.querySelector("source")) {
-      const source = document.createElement("source");
-      source.src = CONFIG.videoSrc;
-      source.type = CONFIG.videoType;
-      videoPlayer.appendChild(source);
-      videoPlayer.load();
-    }
-
-    // Показываем экран видео с плавным появлением
     videoScreen.hidden = false;
-    // Небольшая задержка, чтобы сработал transition opacity
     videoScreen.classList.add("is-hidden");
     requestAnimationFrame(() => {
       requestAnimationFrame(() => videoScreen.classList.remove("is-hidden"));
@@ -67,31 +156,27 @@ function showVideo() {
   }, 380);
 }
 
-/* ---------- Показ экрана пароля (выход) ---------- */
+/* ---------- Показ экрана ввода (выход) ---------- */
 function showLock() {
-  // Останавливаем видео при выходе
   videoPlayer.pause();
 
   videoScreen.hidden = true;
   lockScreen.hidden = false;
 
-  // Плавно возвращаем экран пароля
   lockScreen.classList.add("is-hidden");
   requestAnimationFrame(() => {
     requestAnimationFrame(() => lockScreen.classList.remove("is-hidden"));
   });
 
-  // Сбрасываем поле и ошибку
   passwordInput.value = "";
   clearError();
 }
 
-/* ---------- Ошибка неверного пароля ---------- */
+/* ---------- Ошибка неверного кода ---------- */
 function showError() {
   errorMsg.hidden = false;
-  passwordInput.classList.remove("error"); // сброс, чтобы анимация повторилась
-  // reflow — принудительный пересчёт, чтобы re-триггерить shake
-  void passwordInput.offsetWidth;
+  passwordInput.classList.remove("error");
+  void passwordInput.offsetWidth; // reflow, чтобы shake-анимация повторилась
   passwordInput.classList.add("error");
 }
 
@@ -106,17 +191,25 @@ passwordForm.addEventListener("submit", (event) => {
 
   const entered = passwordInput.value.trim();
 
-  if (entered === CONFIG.password) {
-    // Пароль верный — сохраняем доступ и показываем видео
+  if (isValidCode(entered)) {
+    // Код валиден (8 цифр) — запоминаем клиента и открываем видео
+    clientCode = entered;
+    maxPercent = 0;
+
     try {
       localStorage.setItem(CONFIG.storageKey, "true");
+      localStorage.setItem(CONFIG.codeKey, clientCode);
     } catch (e) {
-      // localStorage может быть недоступен (приватный режим) — не критично
+      /* приватный режим — не критично */
     }
+
+    // Сразу отмечаем в таблице, что клиент открыл видео (0%)
+    sendProgress(false);
+
     clearError();
     showVideo();
   } else {
-    // Пароль неверный — показываем ошибку
+    // Не 8 цифр — показываем ошибку
     showError();
   }
 });
@@ -126,34 +219,42 @@ passwordInput.addEventListener("input", clearError);
 
 /* ---------- Кнопка «Выйти» ---------- */
 logoutBtn.addEventListener("click", () => {
+  // Перед выходом фиксируем финальный прогресс
+  updatePercent();
+  sendProgress(true);
+
   try {
     localStorage.removeItem(CONFIG.storageKey);
+    localStorage.removeItem(CONFIG.codeKey);
   } catch (e) {
     /* игнорируем */
   }
+
+  clientCode = "";
+  maxPercent = 0;
   showLock();
 });
 
-/* ---------- Проверка при загрузке страницы ---------- */
-// Если раньше вход был успешным — сразу показываем видео без повторного ввода.
+/* ---------- Инициализация при загрузке ---------- */
+attachTracking();
+
 (function init() {
   let hasAccess = false;
+  let savedCode = "";
   try {
     hasAccess = localStorage.getItem(CONFIG.storageKey) === "true";
+    savedCode = localStorage.getItem(CONFIG.codeKey) || "";
   } catch (e) {
     hasAccess = false;
   }
 
-  if (hasAccess) {
-    // Показываем видео мгновенно (без анимации перехода)
+  // Восстанавливаем доступ только если сохранён валидный код
+  if (hasAccess && isValidCode(savedCode)) {
+    clientCode = savedCode;
+    maxPercent = 0;
+
     lockScreen.hidden = true;
-
-    const source = document.createElement("source");
-    source.src = CONFIG.videoSrc;
-    source.type = CONFIG.videoType;
-    videoPlayer.appendChild(source);
-    videoPlayer.load();
-
+    ensureVideoSource();
     videoScreen.hidden = false;
   }
 })();
