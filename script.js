@@ -217,23 +217,37 @@ passwordForm.addEventListener("submit", (event) => {
 /* ---------- Убираем ошибку при вводе ---------- */
 passwordInput.addEventListener("input", clearError);
 
-/* ---------- Кнопка «Выйти» (если присутствует на странице) ---------- */
+/* ---------- Выход: сброс доступа и возврат к вводу кода ---------- */
+function doLogout() {
+  // Перед выходом фиксируем финальный прогресс
+  updatePercent();
+  sendProgress(true);
+
+  try {
+    localStorage.removeItem(CONFIG.storageKey);
+    localStorage.removeItem(CONFIG.codeKey);
+  } catch (e) {
+    /* игнорируем */
+  }
+
+  clientCode = "";
+  maxPercent = 0;
+  showLock();
+}
+
+/* Кнопка «Выйти» (если присутствует на странице) */
 if (logoutBtn) {
-  logoutBtn.addEventListener("click", () => {
-    // Перед выходом фиксируем финальный прогресс
-    updatePercent();
-    sendProgress(true);
+  logoutBtn.addEventListener("click", doLogout);
+}
 
-    try {
-      localStorage.removeItem(CONFIG.storageKey);
-      localStorage.removeItem(CONFIG.codeKey);
-    } catch (e) {
-      /* игнорируем */
+/* Клик по логотипу — тоже возврат к экрану ввода кода */
+const logoBtn = document.getElementById("logoBtn");
+if (logoBtn) {
+  logoBtn.addEventListener("click", () => {
+    // Возвращаем только если сейчас показан видеоэкран
+    if (!videoScreen.hidden) {
+      doLogout();
     }
-
-    clientCode = "";
-    maxPercent = 0;
-    showLock();
   });
 }
 

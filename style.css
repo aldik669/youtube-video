@@ -58,12 +58,19 @@ body {
   padding: 22px clamp(16px, 4vw, 48px);
 }
 
-/* Логотип-картинка в шапке */
+/* Логотип-картинка в шапке (кликабельный — возврат к вводу кода) */
 .logo-img {
   display: block;
   height: 48px;      /* высота логотипа на десктопе */
   width: auto;
   max-width: 70vw;
+  cursor: pointer;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.logo-img:hover {
+  opacity: 0.8;
+  transform: scale(1.02);
 }
 
 /* ---------- Общий контейнер страницы ---------- */
