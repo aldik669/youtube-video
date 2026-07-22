@@ -58,44 +58,19 @@ body {
   padding: 22px clamp(16px, 4vw, 48px);
 }
 
-.logo-block {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-}
-
-/* Маленькая фиолетовая иконка-квадратик со скруглением */
-.logo-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--purple-1), var(--purple-2));
-  box-shadow: 0 8px 18px rgba(108, 92, 231, 0.3);
-}
-
-.logo-text {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.1;
-}
-
-.logo-name {
-  font-weight: 800;
-  font-size: 22px;
-  letter-spacing: 0.5px;
-}
-
-.logo-caption {
-  font-weight: 500;
-  font-size: 12px;
-  color: var(--ink-soft);
+/* Логотип-картинка в шапке */
+.logo-img {
+  display: block;
+  height: 48px;      /* высота логотипа на десктопе */
+  width: auto;
+  max-width: 70vw;
 }
 
 /* ---------- Общий контейнер страницы ---------- */
 .page {
   flex: 1;
   width: 100%;
-  max-width: 900px;
+  max-width: 1240px;
   margin: 0 auto;
   padding: clamp(16px, 4vw, 40px);
   display: flex;
@@ -240,7 +215,7 @@ body {
 /* Плеер по центру страницы, без заголовка и кнопок */
 .video-screen {
   width: 100%;
-  max-width: 900px;
+  max-width: 1160px;
   margin: 0 auto;
   display: flex;
   justify-content: center;
@@ -277,6 +252,11 @@ body {
 
   .site-header {
     padding: 16px 14px;
+  }
+
+  /* Логотип на телефоне компактнее */
+  .logo-img {
+    height: 34px;
   }
 
   .title {
