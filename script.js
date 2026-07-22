@@ -217,23 +217,25 @@ passwordForm.addEventListener("submit", (event) => {
 /* ---------- Убираем ошибку при вводе ---------- */
 passwordInput.addEventListener("input", clearError);
 
-/* ---------- Кнопка «Выйти» ---------- */
-logoutBtn.addEventListener("click", () => {
-  // Перед выходом фиксируем финальный прогресс
-  updatePercent();
-  sendProgress(true);
+/* ---------- Кнопка «Выйти» (если присутствует на странице) ---------- */
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    // Перед выходом фиксируем финальный прогресс
+    updatePercent();
+    sendProgress(true);
 
-  try {
-    localStorage.removeItem(CONFIG.storageKey);
-    localStorage.removeItem(CONFIG.codeKey);
-  } catch (e) {
-    /* игнорируем */
-  }
+    try {
+      localStorage.removeItem(CONFIG.storageKey);
+      localStorage.removeItem(CONFIG.codeKey);
+    } catch (e) {
+      /* игнорируем */
+    }
 
-  clientCode = "";
-  maxPercent = 0;
-  showLock();
-});
+    clientCode = "";
+    maxPercent = 0;
+    showLock();
+  });
+}
 
 /* ---------- Инициализация при загрузке ---------- */
 attachTracking();

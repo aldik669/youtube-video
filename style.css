@@ -237,36 +237,13 @@ body {
 }
 
 /* ---------- Экран видео ---------- */
+/* Плеер по центру страницы, без заголовка и кнопок */
 .video-screen {
+  width: 100%;
   max-width: 900px;
   margin: 0 auto;
-}
-
-.video-head {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 18px;
-}
-
-/* Кнопка «Выйти» — второстепенная, синий акцент */
-.btn-logout {
-  padding: 11px 20px;
-  font-family: inherit;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--blue);
-  background: rgba(47, 111, 237, 0.1);
-  border: 2px solid rgba(47, 111, 237, 0.22);
-  border-radius: 14px;
-  cursor: pointer;
-  transition: background 0.18s ease, transform 0.18s ease;
-}
-
-.btn-logout:hover {
-  background: rgba(47, 111, 237, 0.16);
-  transform: translateY(-1px);
+  justify-content: center;
 }
 
 /* Рамка вокруг плеера: скругление + тень */
@@ -290,14 +267,29 @@ body {
   background: #000;
 }
 
-/* ---------- Адаптив: мелкие экраны ---------- */
-@media (max-width: 520px) {
-  .video-head {
-    flex-direction: row;
-    align-items: center;
+/* ---------- Адаптив: мелкие экраны (телефоны) ---------- */
+@media (max-width: 600px) {
+  /* Контент повыше, не «плавает» в центре высокого экрана */
+  .page {
+    align-items: flex-start;
+    padding: 20px 14px;
+  }
+
+  .site-header {
+    padding: 16px 14px;
   }
 
   .title {
     font-size: 24px;
+  }
+
+  /* Плеер занимает всю ширину телефона, углы чуть меньше */
+  .video-frame {
+    border-radius: 16px;
+  }
+
+  /* Поле ввода и кнопка удобные для пальца */
+  .password-input {
+    font-size: 16px; /* 16px — чтобы iOS не зумил при фокусе */
   }
 }
